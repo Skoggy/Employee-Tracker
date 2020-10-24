@@ -1,6 +1,8 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
+var figlet = require('figlet');
+
 var connection = mysql.createConnection({
     host: "localhost",
 
@@ -19,6 +21,7 @@ var connection = mysql.createConnection({
 
 connection.connect(function (err, res) {
     if (err) throw err;
+
     askWhatWant();
 });
 
@@ -39,9 +42,9 @@ function askWhatWant() {
                 "Update employee role"
             ]
         }).then(function (answer) {
-            switch (answer.action) {
+            switch (answer.name) {
                 case "View all employees":
-                    console.log("View all employees")
+                    viewEmployees();
                     break;
 
                 case "View all departments":
@@ -63,8 +66,31 @@ function askWhatWant() {
                 case "Update employee role":
                     console.log("Update employee role")
                     break;
-
-
             }
         })
 }
+
+
+function viewEmployees() {
+
+    var query = "SELECT * FROM employee";
+    connection.query(query, function (err, res) {
+        res.forEach(res => {
+            console.log("\n")
+            console.log(res)
+
+        })
+        askWhatWant();
+    })
+
+
+}
+
+figlet('Employee Tracker', function (err, data) {
+    if (err) {
+        console.log('Something went wrong...');
+        console.dir(err);
+        return;
+    }
+    console.log(data)
+});
