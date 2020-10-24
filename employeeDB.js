@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-
+const cTable = require("console.table");
 var figlet = require('figlet');
 
 var connection = mysql.createConnection({
@@ -69,23 +69,15 @@ function askWhatWant() {
             }
         })
 }
-
-
 function viewEmployees() {
 
-    var query = "SELECT * FROM employee";
+    var query = "SELECT * FROM employee"
     connection.query(query, function (err, res) {
-        res.forEach(res => {
-            console.log("\n")
-            console.log(res)
-
-        })
-        askWhatWant();
+        console.log("\n")
+        console.table(res)
+        askWhatWant()
     })
-
-
 }
-
 figlet('Employee Tracker', function (err, data) {
     if (err) {
         console.log('Something went wrong...');
@@ -94,3 +86,4 @@ figlet('Employee Tracker', function (err, data) {
     }
     console.log(data)
 });
+
