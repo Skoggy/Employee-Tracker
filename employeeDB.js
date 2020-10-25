@@ -71,7 +71,15 @@ function askWhatWant() {
 }
 function viewEmployees() {
 
-    var query = "SELECT * FROM employee"
+    var query = 'SELECT e.id, e.first_name AS "First Name", e.last_name AS "Last Name", IFNULL(r.title, "No Data") AS "Title", IFNULL(d.name, "No Data") AS "Department", IFNULL(r.salary, "No Data") AS "Salary", CONCAT(m.first_name," ",m.last_name) AS "Manager" FROM employee e LEFT JOIN role r ON r.id = e.role_id LEFT JOIN department d ON d.id = r.department_id LEFT JOIN employee m ON m.id = e.manager_id ORDER BY e.id';
+
+
+
+
+
+
+
+
     connection.query(query, function (err, res) {
         console.log("\n")
         console.table(res)
