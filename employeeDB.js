@@ -3,6 +3,7 @@ var inquirer = require("inquirer");
 const cTable = require("console.table");
 var figlet = require('figlet');
 const { resolve } = require("path");
+const { allowedNodeEnvironmentFlags } = require("process");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -17,8 +18,6 @@ var connection = mysql.createConnection({
     password: "christopher",
     database: "employee_managerDB"
 });
-
-
 
 class DatabaseConnect {
     constructor(con) {
@@ -65,7 +64,7 @@ function askWhatWant() {
                     break;
 
                 case "Add role":
-                    console.log("Add role")
+                    addRole();
                     break;
 
                 case "Update employee role":
@@ -157,17 +156,12 @@ function addEmployee() {
                     var role = answer.role
                     var roleIndex = roleArray.indexOf(role) + 1
                     var manager = answer.manager
-                    console.log(managerArray.indexOf(manager))
                     var managerIndex = managerArray.indexOf(manager) + 1
-
-
 
                     var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleIndex + "," + managerIndex + ")"
                     connection.query(query, function (err, res) {
                         if (err) throw err;
                         console.log(`You have succesfully added a new employee`)
-                        console.log("\n")
-                        console.table(res)
                         askWhatWant()
                     })
                 })
@@ -178,7 +172,33 @@ function addEmployee() {
 
 
 
+function addRole() {
+    inquirer
+        .prompt([
+            {
+                name: "roleName",
+                type: "input",
+                message: "What role would you like to create: ",
+                //validate: roleValidation
+            },
+            {
+                name: "salary",
+                type: "input",
+                message: "What is the salary for the created role: ",
+                // validate: numValidate
+            }
+        ]).then(function (answer) {
+            var nameRole = JSON.stringify(answer.roleName)
+            var salary = JSON.stringify(answer.salary)
 
+            var query = "INSERT INTO role(title, salary) VALUES (" + nameRole + "," + salary + ")"
+            connection.query(query, function (err, res) {
+                if (err) throw err;
+                console.log(`You have succesfully added a new role`)
+                askWhatWant()
+            })
+        })
+}
 
 
 
