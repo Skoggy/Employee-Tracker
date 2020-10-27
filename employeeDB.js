@@ -2,6 +2,7 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 const cTable = require("console.table");
 var figlet = require('figlet');
+const { resolve } = require("path");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -19,6 +20,20 @@ var connection = mysql.createConnection({
 
 
 
+class DatabaseConnect {
+    constructor(con) {
+        this.connection = mysql.createConnection(con)
+    }
+
+    query(sql, args) {
+        return new Promise((res, rej) => {
+            this.connection.query(sql, args, (err, rows) => {
+                if (err) return rej(err)
+                resolve(rows)
+            })
+        })
+    }
+}
 connection.connect(function (err, res) {
     if (err) throw err;
 
@@ -45,16 +60,8 @@ function askWhatWant() {
                     viewEmployees();
                     break;
 
-                case "View all departments":
-                    console.log("View all departments")
-                    break;
-
-                case "View all roles":
-                    console.log("View all roles")
-                    break;
-
                 case "Add employee":
-                    console.log("Add employee")
+                    addEmployee();
                     break;
 
                 case "Add role":
@@ -100,6 +107,77 @@ function viewEmployees() {
             })
         })
 }
+
+
+async function addEmployee() {
+    var query = "SELECT title FROM role";
+    connection.query(query, function (err, res) {
+        if (err) throw err;
+        let roleArray = []
+        res.forEach(res => {
+            roleArray.push(res.title)
+        })
+        //  let position = await connection.query("SELECT id, title FROM role");
+        inquirer
+            .prompt([
+                {
+                    name: "firstname",
+                    type: "input",
+                    message: "Employees first name: "
+                },
+                {
+                    name: "lastname",
+                    type: "input",
+                    message: "Employees last name: "
+                },
+                {
+                    name: "role",
+                    type: "list",
+                    message: "Employees role: ",
+                    choices: roleArray
+
+                }
+                // {
+                //      name: "manager",
+                //    type: "input",
+                //    message: "Who will this employee report to: "
+                //  }
+
+            ]).then(function (answer) {
+                var first = JSON.stringify(answer.firstname)
+                var last = JSON.stringify(answer.lastname)
+                var role = answer.role
+                var roleIndex = roleArray.indexOf(role) + 1
+                console.log(roleArray.indexOf(role))
+
+
+
+                var query = "INSERT INTO employee(first_name, last_name, role_id) VALUES(" + first + "," + last + "," + roleIndex + ")"
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully added a new employee`)
+                    console.log("\n")
+                    console.table(res)
+                    askWhatWant()
+                })
+            })
+
+    })
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
