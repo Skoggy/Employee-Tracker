@@ -109,7 +109,7 @@ function viewEmployees() {
 }
 
 
-async function addEmployee() {
+function addEmployee() {
     var query = "SELECT title FROM role";
     connection.query(query, function (err, res) {
         if (err) throw err;
@@ -117,51 +117,61 @@ async function addEmployee() {
         res.forEach(res => {
             roleArray.push(res.title)
         })
-        //  let position = await connection.query("SELECT id, title FROM role");
-        inquirer
-            .prompt([
-                {
-                    name: "firstname",
-                    type: "input",
-                    message: "Employees first name: "
-                },
-                {
-                    name: "lastname",
-                    type: "input",
-                    message: "Employees last name: "
-                },
-                {
-                    name: "role",
-                    type: "list",
-                    message: "Employees role: ",
-                    choices: roleArray
+        connection.query("SELECT first_name, last_name FROM employee", function (err, result) {
+            if (err) throw err;
+            let managerArray = []
+            result.forEach(result => {
+                managerArray.push(`${result.first_name} ${result.last_name}`)
 
-                }
-                // {
-                //      name: "manager",
-                //    type: "input",
-                //    message: "Who will this employee report to: "
-                //  }
-
-            ]).then(function (answer) {
-                var first = JSON.stringify(answer.firstname)
-                var last = JSON.stringify(answer.lastname)
-                var role = answer.role
-                var roleIndex = roleArray.indexOf(role) + 1
-                console.log(roleArray.indexOf(role))
-
-
-
-                var query = "INSERT INTO employee(first_name, last_name, role_id) VALUES(" + first + "," + last + "," + roleIndex + ")"
-                connection.query(query, function (err, res) {
-                    if (err) throw err;
-                    console.log(`You have succesfully added a new employee`)
-                    console.log("\n")
-                    console.table(res)
-                    askWhatWant()
-                })
             })
+            //  let position = await connection.query("SELECT id, title FROM role");
+            inquirer
+                .prompt([
+                    {
+                        name: "firstname",
+                        type: "input",
+                        message: "Employees first name: "
+                    },
+                    {
+                        name: "lastname",
+                        type: "input",
+                        message: "Employees last name: "
+                    },
+                    {
+                        name: "role",
+                        type: "list",
+                        message: "Employees role: ",
+                        choices: roleArray
 
+                    },
+                    {
+                        name: "manager",
+                        type: "list",
+                        message: "Who will this employee report to: ",
+                        choices: managerArray
+                    }
+
+                ]).then(function (answer) {
+                    var first = JSON.stringify(answer.firstname)
+                    var last = JSON.stringify(answer.lastname)
+                    var role = answer.role
+                    var roleIndex = roleArray.indexOf(role) + 1
+                    var manager = answer.manager
+                    console.log(managerArray.indexOf(manager))
+                    var managerIndex = managerArray.indexOf(manager) + 1
+
+
+
+                    var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleIndex + "," + managerIndex + ")"
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
+                        console.log(`You have succesfully added a new employee`)
+                        console.log("\n")
+                        console.table(res)
+                        askWhatWant()
+                    })
+                })
+        })
     })
 }
 
