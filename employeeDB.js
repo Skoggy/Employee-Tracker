@@ -173,31 +173,48 @@ function addEmployee() {
 
 
 function addRole() {
-    inquirer
-        .prompt([
-            {
-                name: "roleName",
-                type: "input",
-                message: "What role would you like to create: ",
-                //validate: roleValidation
-            },
-            {
-                name: "salary",
-                type: "input",
-                message: "What is the salary for the created role: ",
-                // validate: numValidate
-            }
-        ]).then(function (answer) {
-            var nameRole = JSON.stringify(answer.roleName)
-            var salary = JSON.stringify(answer.salary)
-
-            var query = "INSERT INTO role(title, salary) VALUES (" + nameRole + "," + salary + ")"
-            connection.query(query, function (err, res) {
-                if (err) throw err;
-                console.log(`You have succesfully added a new role`)
-                askWhatWant()
-            })
+    connection.query("SELECT name FROM department", function (err, res) {
+        if (err) throw err;
+        let departmentArray = [];
+        res.forEach(res => {
+            departmentArray.push(res.name)
         })
+
+        inquirer
+            .prompt([
+                {
+                    name: "roleName",
+                    type: "input",
+                    message: "What role would you like to create: ",
+                    //validate: roleValidation
+                },
+                {
+                    name: "salary",
+                    type: "input",
+                    message: "What is the salary for the created role: ",
+                    // validate: numValidate
+                },
+                {
+                    name: "department",
+                    type: "list",
+                    message: "What department is the role to be a part of: ",
+                    choices: departmentArray
+                }
+            ]).then(function (answer) {
+                var nameRole = JSON.stringify(answer.roleName)
+                var salary = JSON.stringify(answer.salary)
+                var department = answer.department;
+                var departmentIndex = departmentArray.indexOf(department) + 1
+
+
+                var query = "INSERT INTO role(title, salary, department_id) VALUES (" + nameRole + "," + salary + "," + departmentIndex + ")"
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully added a new role`)
+                    askWhatWant()
+                })
+            })
+    })
 }
 
 
