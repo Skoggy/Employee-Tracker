@@ -1,7 +1,7 @@
 
-DROP DATABASE IF EXISTS employee_managerDB;
+DROP DATABASE IF EXISTS employeeDB;
 
-USE employee_managerDB;
+USE employeeDB;
 
 INSERT INTO department(name)
 VALUES 

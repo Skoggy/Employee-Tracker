@@ -3,7 +3,8 @@ var inquirer = require("inquirer");
 const cTable = require("console.table");
 var figlet = require('figlet');
 const { resolve } = require("path");
-const { allowedNodeEnvironmentFlags } = require("process");
+
+
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -16,7 +17,7 @@ var connection = mysql.createConnection({
 
     // Your password
     password: "christopher",
-    database: "employee_managerDB"
+    database: "employeeDB"
 });
 
 class DatabaseConnect {
@@ -39,7 +40,6 @@ connection.connect(function (err, res) {
     askWhatWant();
 });
 
-
 function askWhatWant() {
     inquirer
         .prompt({
@@ -51,7 +51,8 @@ function askWhatWant() {
                 "Add employee",
                 "Add department",
                 "Add role",
-                "Update employee role"
+                "Update employee role",
+                "Delete from database"
             ]
         }).then(function (answer) {
             switch (answer.name) {
@@ -63,6 +64,10 @@ function askWhatWant() {
                     addEmployee();
                     break;
 
+                case "Add department":
+                    addDepartment();
+                    break;
+
                 case "Add role":
                     addRole();
                     break;
@@ -70,6 +75,9 @@ function askWhatWant() {
                 case "Update employee role":
                     console.log("Update employee role")
                     break;
+
+                case "Delete from database":
+                    deleteFunc();
             }
         })
 }
@@ -106,8 +114,6 @@ function viewEmployees() {
             })
         })
 }
-
-
 function addEmployee() {
     var query = "SELECT title FROM role";
     connection.query(query, function (err, res) {
@@ -116,6 +122,7 @@ function addEmployee() {
         res.forEach(res => {
             roleArray.push(res.title)
         })
+        console.log(roleArray)
         connection.query("SELECT first_name, last_name FROM employee", function (err, result) {
             if (err) throw err;
             let managerArray = []
@@ -162,15 +169,13 @@ function addEmployee() {
                     connection.query(query, function (err, res) {
                         if (err) throw err;
                         console.log(`You have succesfully added a new employee`)
+                        console.log(role)
                         askWhatWant()
                     })
                 })
         })
     })
 }
-
-
-
 
 function addRole() {
     connection.query("SELECT name FROM department", function (err, res) {
@@ -217,6 +222,87 @@ function addRole() {
     })
 }
 
+function addDepartment() {
+    inquirer
+        .prompt([
+            {
+                name: "name",
+                type: "input",
+                message: "Please give the new department a name: ",
+                // validate:
+            }
+
+        ]).then(answer => {
+            var nameString = JSON.stringify(answer.name)
+            var query = "INSERT INTO department (name) VALUES (" + nameString + ")";
+            connection.query(query, function (err, res) {
+                if (err) throw err;
+                console.log(`You have succesfully added a new department`)
+                askWhatWant()
+            })
+        })
+}
+
+function deleteFunc() {
+    inquirer
+        .prompt([
+            {
+                name: "whatToDelete",
+                type: "list",
+                message: "What would you like to remove from the database",
+                choices: [
+                    "Employee",
+                    "Role",
+                    "Department"
+                ]
+            }
+        ]).then(answer => {
+            switch (answer.whatToDelete) {
+                case "Employee":
+                    deleteEmployee();
+                    break;
+
+                case "Role":
+                    deleteRole();
+                    break;
+
+                case "Department":
+                    deleteDepartment();
+                    break;
+            }
+        })
+}
+
+
+function deleteEmployee() {
+    connection.query("SELECT * FROM employee", function (err, result) {
+        if (err) throw err;
+        let employeeArray = []
+        result.forEach(result => {
+            employeeArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
+        })
+        inquirer
+            .prompt([
+                {
+                    name: "name",
+                    type: "list",
+                    message: "Which employee would you like to remove",
+                    choices: employeeArray
+                }
+            ]).then(answer => {
+                answerString = JSON.stringify(answer.name)
+                console.log(answerString.charAt(1))
+                id = answerString.charAt(1)
+                var query = "DELETE FROM employee WHERE id =" + id
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully removed an employee`)
+                    askWhatWant()
+                })
+            })
+
+    })
+}
 
 
 
