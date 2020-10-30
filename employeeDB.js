@@ -342,9 +342,40 @@ function deleteDepartment() {
                 askWhatWant()
             })
     })
-
-
 }
+
+function deleteRole() {
+
+    connection.query("SELECT * FROM role", function (err, result) {
+        if (err) throw err;
+        let roleArray = []
+        result.forEach(result => {
+            roleArray.push(`${result.id} ${result.title}`)
+        })
+        inquirer
+            .prompt([
+                {
+                    name: "name",
+                    type: "list",
+                    message: "Which role would you like to remove",
+                    choices: roleArray
+                }
+            ]).then(answer => {
+                answerString = JSON.stringify(answer.name)
+                console.log(answerString.charAt(1))
+                id = answerString.charAt(1)
+                var query = "DELETE FROM role WHERE id = " + id
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully removed a role`)
+
+                })
+
+                askWhatWant()
+            })
+    })
+}
+
 
 
 
