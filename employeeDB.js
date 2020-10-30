@@ -41,6 +41,15 @@ connection.connect(function (err, res) {
 });
 
 function askWhatWant() {
+    connection.query("ALTER TABLE department AUTO_INCREMENT = 1", function (err, res) {
+        if (err) throw err;
+    })
+    connection.query("ALTER TABLE employee AUTO_INCREMENT = 1", function (err, res) {
+        if (err) throw err;
+    })
+    connection.query("ALTER TABLE role AUTO_INCREMENT = 1", function (err, res) {
+        if (err) throw err;
+    })
     inquirer
         .prompt({
             name: "name",
@@ -304,6 +313,38 @@ function deleteEmployee() {
     })
 }
 
+function deleteDepartment() {
+    connection.query("SELECT * FROM department", function (err, result) {
+        if (err) throw err;
+        let deparmentArray = []
+        result.forEach(result => {
+            deparmentArray.push(`${result.id} ${result.name}`)
+        })
+        inquirer
+            .prompt([
+                {
+                    name: "name",
+                    type: "list",
+                    message: "Which department would you like to remove",
+                    choices: deparmentArray
+                }
+            ]).then(answer => {
+                answerString = JSON.stringify(answer.name)
+                console.log(answerString.charAt(1))
+                id = answerString.charAt(1)
+                var query = "DELETE FROM department WHERE id = " + id
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully removed an department`)
+
+                })
+
+                askWhatWant()
+            })
+    })
+
+
+}
 
 
 
