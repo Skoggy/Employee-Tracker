@@ -124,19 +124,19 @@ function viewEmployees() {
         })
 }
 function addEmployee() {
-    var query = "SELECT title FROM role";
+    var query = "SELECT * FROM role";
     connection.query(query, function (err, res) {
         if (err) throw err;
         let roleArray = []
         res.forEach(res => {
-            roleArray.push(res.title)
+            roleArray.push(`${res.id} ${res.title}`)
         })
         console.log(roleArray)
-        connection.query("SELECT first_name, last_name FROM employee", function (err, result) {
+        connection.query("SELECT * FROM employee", function (err, result) {
             if (err) throw err;
             let managerArray = []
             result.forEach(result => {
-                managerArray.push(`${result.first_name} ${result.last_name}`)
+                managerArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
 
             })
             //  let position = await connection.query("SELECT id, title FROM role");
@@ -169,12 +169,12 @@ function addEmployee() {
                 ]).then(function (answer) {
                     var first = JSON.stringify(answer.firstname)
                     var last = JSON.stringify(answer.lastname)
-                    var role = answer.role
-                    var roleIndex = roleArray.indexOf(role) + 1
-                    var manager = answer.manager
-                    var managerIndex = managerArray.indexOf(manager) + 1
+                    roleString = JSON.stringify(answer.role)
+                    roleId = roleString.charAt(1)
+                    managerString = JSON.stringify(answer.manager)
+                    managerId = managerString.charAt(1)
 
-                    var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleIndex + "," + managerIndex + ")"
+                    var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleId + "," + managerId + ")"
                     connection.query(query, function (err, res) {
                         if (err) throw err;
                         console.log(`You have succesfully added a new employee`)
@@ -187,11 +187,11 @@ function addEmployee() {
 }
 
 function addRole() {
-    connection.query("SELECT name FROM department", function (err, res) {
+    connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
         let departmentArray = [];
         res.forEach(res => {
-            departmentArray.push(res.name)
+            departmentArray.push(`${res.id} ${res.name}`)
         })
 
         inquirer
@@ -217,11 +217,10 @@ function addRole() {
             ]).then(function (answer) {
                 var nameRole = JSON.stringify(answer.roleName)
                 var salary = JSON.stringify(answer.salary)
-                var department = answer.department;
-                var departmentIndex = departmentArray.indexOf(department) + 1
-
-
-                var query = "INSERT INTO role(title, salary, department_id) VALUES (" + nameRole + "," + salary + "," + departmentIndex + ")"
+                answerString = JSON.stringify(answer.department)
+                console.log(answerString.charAt(1))
+                id = answerString.charAt(1)
+                var query = "INSERT INTO role(title, salary, department_id) VALUES (" + nameRole + "," + salary + "," + id + ")"
                 connection.query(query, function (err, res) {
                     if (err) throw err;
                     console.log(`You have succesfully added a new role`)
