@@ -443,6 +443,43 @@ function updateRole() {
 }
 
 
+function updateManager() {
+    connection.query("SELECT * FROM employee", function (err, result) {
+        if (err) throw err;
+        let employeeArray = []
+        result.forEach(result => {
+            employeeArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
+        })
+        inquirer
+            .prompt([
+                {
+                    name: "name",
+                    type: "list",
+                    message: "Which employee would you like to update",
+                    choices: employeeArray
+                },
+                {
+                    name: "role",
+                    type: "list",
+                    message: "Who would you like to set as their manager",
+                    choices: employeeArray
+                }
+            ]).then(answer => {
+
+                var employeeString = JSON.stringify(answer.name)
+                var managerString = JSON.stringify(answer.role)
+                var employeeID = employeeString.charAt(1)
+                var managerID = managerString.charAt(1)
+
+
+                connection.query(`UPDATE employee SET manager_id = ${managerID} WHERE id = ${employeeID}`, (err, res) => {
+                    if (err) return err;
+                })
+                askWhatWant();
+            })
+    })
+}
+
 
 //  ]).then(answer => {
 
