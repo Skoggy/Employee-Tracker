@@ -20,20 +20,6 @@ var connection = mysql.createConnection({
     database: "employeeDB"
 });
 
-class DatabaseConnect {
-    constructor(con) {
-        this.connection = mysql.createConnection(con)
-    }
-
-    query(sql, args) {
-        return new Promise((res, rej) => {
-            this.connection.query(sql, args, (err, rows) => {
-                if (err) return rej(err)
-                resolve(rows)
-            })
-        })
-    }
-}
 connection.connect(function (err, res) {
     if (err) throw err;
 
@@ -60,7 +46,7 @@ function askWhatWant() {
                 "Add employee",
                 "Add department",
                 "Add role",
-                "Update employee role",
+                "Update employee",
                 "Delete from database"
             ]
         }).then(function (answer) {
@@ -81,8 +67,8 @@ function askWhatWant() {
                     addRole();
                     break;
 
-                case "Update employee role":
-                    console.log("Update employee role")
+                case "Update employee":
+                    updateEmployee();
                     break;
 
                 case "Delete from database":
@@ -139,7 +125,7 @@ function addEmployee() {
                 managerArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
 
             })
-            //  let position = await connection.query("SELECT id, title FROM role");
+
             inquirer
                 .prompt([
                     {
@@ -376,8 +362,97 @@ function deleteRole() {
 }
 
 
+function updateEmployee() {
+    inquirer
+        .prompt([
+            {
+                name: "update",
+                type: "list",
+                message: "What would you like to update",
+                choices: [
+                    "Role",
+                    "Manager",
+                    "Back"
+
+                ]
+            }
+        ]).then(answer => {
+            switch (answer.update) {
+                case "Role":
+                    updateRole();
+                    break;
+
+                case "Manager":
+                    updateManager();
+                    break;
+
+                case "Back":
+                    askWhatWant();
+                    break;
+            }
+        })
+}
 
 
+
+function updateRole() {
+    connection.query("SELECT * FROM employee", function (err, result) {
+        if (err) throw err;
+        let employeeArray = []
+        result.forEach(result => {
+            employeeArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
+        })
+        connection.query("SELECT * FROM role", function (err, res) {
+            if (err) throw err;
+            let roleArray = []
+            res.forEach(res => {
+                roleArray.push(`${res.id} ${res.title}`)
+            })
+            inquirer
+                .prompt([
+                    {
+                        name: "name",
+                        type: "list",
+                        message: "Which employee would you like to update",
+                        choices: employeeArray
+                    },
+                    {
+                        name: "role",
+                        type: "list",
+                        message: "Which role would you like to change to",
+                        choices: roleArray
+                    }
+                ]).then(answer => {
+
+                    var answerString = JSON.stringify(answer.role)
+                    var answerId = answerString.charAt(1)
+                    var employeeNameString = JSON.stringify(answer.name)
+                    var employeeId = employeeNameString.charAt(1)
+
+                    var query = `UPDATE employee SET role_id = ${answerId} WHERE id = ${employeeId}`
+                    connection.query(query, function (err, res) {
+                        if (err) throw err;
+                        console.log(`You have succesfully updated a role`)
+                    })
+                    askWhatWant();
+                })
+
+        })
+
+    })
+}
+
+
+
+//  ]).then(answer => {
+
+//         managerString = JSON.stringify(answer.name)
+//        managerId = managerString.charAt(1)
+//      var query = "UPDATE employee SET manager_id = " + managerId + "WHERE first_name = " +
+//             connection.query(query, function (err, res) {
+//               if (err) throw err;
+//             console.log(`You have succesfully removed a role`)
+//            })
 
 
 
