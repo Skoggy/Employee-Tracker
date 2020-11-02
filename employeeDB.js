@@ -3,8 +3,7 @@ var inquirer = require("inquirer");
 const cTable = require("console.table");
 var figlet = require('figlet');
 const { resolve } = require("path");
-
-
+const chalk = require("chalk");
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -26,16 +25,11 @@ connection.connect(function (err, res) {
     askWhatWant();
 });
 
+
+
+
 function askWhatWant() {
-    connection.query("ALTER TABLE department AUTO_INCREMENT = 1", function (err, res) {
-        if (err) throw err;
-    })
-    connection.query("ALTER TABLE employee AUTO_INCREMENT = 1", function (err, res) {
-        if (err) throw err;
-    })
-    connection.query("ALTER TABLE role AUTO_INCREMENT = 1", function (err, res) {
-        if (err) throw err;
-    })
+
     inquirer
         .prompt({
             name: "name",
@@ -109,67 +103,64 @@ function viewEmployees() {
             })
         })
 }
+
 function addEmployee() {
-    var query = "SELECT * FROM role";
+    var query = "SELECT e.id, e.first_name, e.last_name, r.id AS role_id, r.title FROM employee e INNER JOIN role r ON e.role_id = r.id"
     connection.query(query, function (err, res) {
         if (err) throw err;
         let roleArray = []
+        let managerArray = []
         res.forEach(res => {
-            roleArray.push(`${res.id} ${res.title}`)
+            roleArray.push(`${res.role_id} ${res.title}`)
+            managerArray.push(`${res.id} ${res.first_name} ${res.last_name}`)
         })
-        console.log(roleArray)
-        connection.query("SELECT * FROM employee", function (err, result) {
-            if (err) throw err;
-            let managerArray = []
-            result.forEach(result => {
-                managerArray.push(`${result.id} ${result.first_name} ${result.last_name}`)
 
-            })
+        inquirer
+            .prompt([
+                {
+                    name: "firstname",
+                    type: "input",
+                    message: "Employees first name: ",
 
-            inquirer
-                .prompt([
-                    {
-                        name: "firstname",
-                        type: "input",
-                        message: "Employees first name: "
-                    },
-                    {
-                        name: "lastname",
-                        type: "input",
-                        message: "Employees last name: "
-                    },
-                    {
-                        name: "role",
-                        type: "list",
-                        message: "Employees role: ",
-                        choices: roleArray
+                },
+                {
+                    name: "lastname",
+                    type: "input",
+                    message: "Employees last name: ",
 
-                    },
-                    {
-                        name: "manager",
-                        type: "list",
-                        message: "Who will this employee report to: ",
-                        choices: managerArray
-                    }
+                },
+                {
+                    name: "role",
+                    type: "list",
+                    message: "Employees role: ",
+                    choices: roleArray
 
-                ]).then(function (answer) {
-                    var first = JSON.stringify(answer.firstname)
-                    var last = JSON.stringify(answer.lastname)
-                    roleString = JSON.stringify(answer.role)
-                    roleId = roleString.charAt(1)
-                    managerString = JSON.stringify(answer.manager)
-                    managerId = managerString.charAt(1)
+                },
+                {
+                    name: "manager",
+                    type: "list",
+                    message: "Who will this employee report to: ",
+                    choices: managerArray
+                }
 
-                    var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleId + "," + managerId + ")"
-                    connection.query(query, function (err, res) {
-                        if (err) throw err;
-                        console.log(`You have succesfully added a new employee`)
-                        console.log(role)
-                        askWhatWant()
-                    })
+            ]).then(function (answer) {
+                var first = JSON.stringify(answer.firstname)
+                var last = JSON.stringify(answer.lastname)
+                roleString = JSON.stringify(answer.role)
+                roleId = roleString.charAt(1) + roleString.charAt(2)
+                managerString = JSON.stringify(answer.manager)
+                managerId = managerString.charAt(1) + managerString.charAt(2)
+
+                var query = "INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(" + first + "," + last + "," + roleId + "," + managerId + ")"
+                connection.query(query, function (err, res) {
+                    if (err) throw err;
+                    console.log(`You have succesfully added a new employee`)
+
+                    askWhatWant()
                 })
-        })
+            })
     })
+
 }
 
 function addRole() {
@@ -186,13 +177,13 @@ function addRole() {
                     name: "roleName",
                     type: "input",
                     message: "What role would you like to create: ",
-                    //validate: roleValidation
+
                 },
                 {
                     name: "salary",
                     type: "input",
                     message: "What is the salary for the created role: ",
-                    // validate: numValidate
+
                 },
                 {
                     name: "department",
@@ -204,8 +195,7 @@ function addRole() {
                 var nameRole = JSON.stringify(answer.roleName)
                 var salary = JSON.stringify(answer.salary)
                 answerString = JSON.stringify(answer.department)
-                console.log(answerString.charAt(1))
-                id = answerString.charAt(1)
+                id = answerString.charAt(1) + answerString.charAt(2)
                 var query = "INSERT INTO role(title, salary, department_id) VALUES (" + nameRole + "," + salary + "," + id + ")"
                 connection.query(query, function (err, res) {
                     if (err) throw err;
@@ -223,7 +213,7 @@ function addDepartment() {
                 name: "name",
                 type: "input",
                 message: "Please give the new department a name: ",
-                // validate:
+
             }
 
         ]).then(answer => {
@@ -285,12 +275,11 @@ function deleteEmployee() {
                 }
             ]).then(answer => {
                 answerString = JSON.stringify(answer.name)
-                console.log(answerString.charAt(1))
-                id = answerString.charAt(1)
-                var query = "DELETE FROM employee WHERE id =" + id
+                id = answerString.charAt(1) + answerString.charAt(2)
+                var query = "DELETE FROM employee WHERE id = " + id
                 connection.query(query, function (err, res) {
                     if (err) throw err;
-                    console.log(`You have succesfully removed an employee`)
+                    console.log(`You have succesfully removed an employee with the id ${id}`)
                     askWhatWant()
                 })
             })
@@ -315,8 +304,7 @@ function deleteDepartment() {
                 }
             ]).then(answer => {
                 answerString = JSON.stringify(answer.name)
-                console.log(answerString.charAt(1))
-                id = answerString.charAt(1)
+                id = answerString.charAt(1) + answerString.charAt(2)
                 var query = "DELETE FROM department WHERE id = " + id
                 connection.query(query, function (err, res) {
                     if (err) throw err;
@@ -347,8 +335,7 @@ function deleteRole() {
                 }
             ]).then(answer => {
                 answerString = JSON.stringify(answer.name)
-                console.log(answerString.charAt(1))
-                id = answerString.charAt(1)
+                id = answerString.charAt(1) + answerString.charAt(2)
                 var query = "DELETE FROM role WHERE id = " + id
                 connection.query(query, function (err, res) {
                     if (err) throw err;
@@ -373,7 +360,6 @@ function updateEmployee() {
                     "Role",
                     "Manager",
                     "Back"
-
                 ]
             }
         ]).then(answer => {
@@ -392,8 +378,6 @@ function updateEmployee() {
             }
         })
 }
-
-
 
 function updateRole() {
     connection.query("SELECT * FROM employee", function (err, result) {
@@ -425,9 +409,9 @@ function updateRole() {
                 ]).then(answer => {
 
                     var answerString = JSON.stringify(answer.role)
-                    var answerId = answerString.charAt(1)
+                    var answerId = answerString.charAt(1) + answerString.charAt(2)
                     var employeeNameString = JSON.stringify(answer.name)
-                    var employeeId = employeeNameString.charAt(1)
+                    var employeeId = employeeNameString.charAt(1) + employeeNameString.charAt(2)
 
                     var query = `UPDATE employee SET role_id = ${answerId} WHERE id = ${employeeId}`
                     connection.query(query, function (err, res) {
@@ -436,12 +420,9 @@ function updateRole() {
                     })
                     askWhatWant();
                 })
-
         })
-
     })
 }
-
 
 function updateManager() {
     connection.query("SELECT * FROM employee", function (err, result) {
@@ -468,8 +449,8 @@ function updateManager() {
 
                 var employeeString = JSON.stringify(answer.name)
                 var managerString = JSON.stringify(answer.role)
-                var employeeID = employeeString.charAt(1)
-                var managerID = managerString.charAt(1)
+                var employeeID = employeeString.charAt(1) + employeeString.charAt(2)
+                var managerID = managerString.charAt(1) + managerString.charAt(2)
 
 
                 connection.query(`UPDATE employee SET manager_id = ${managerID} WHERE id = ${employeeID}`, (err, res) => {
@@ -479,23 +460,6 @@ function updateManager() {
             })
     })
 }
-
-
-//  ]).then(answer => {
-
-//         managerString = JSON.stringify(answer.name)
-//        managerId = managerString.charAt(1)
-//      var query = "UPDATE employee SET manager_id = " + managerId + "WHERE first_name = " +
-//             connection.query(query, function (err, res) {
-//               if (err) throw err;
-//             console.log(`You have succesfully removed a role`)
-//            })
-
-
-
-
-
-
 
 figlet('Employee Tracker', function (err, data) {
     if (err) {
