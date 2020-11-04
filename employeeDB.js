@@ -3,7 +3,7 @@ var inquirer = require("inquirer");
 const cTable = require("console.table");
 var figlet = require('figlet');
 const { resolve } = require("path");
-const chalk = require("chalk");
+
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -24,8 +24,6 @@ connection.connect(function (err, res) {
 
     askWhatWant();
 });
-
-
 
 
 function askWhatWant() {
@@ -115,18 +113,20 @@ function addEmployee() {
             managerArray.push(`${res.id} ${res.first_name} ${res.last_name}`)
         })
 
-        inquirer
+        return inquirer
             .prompt([
                 {
                     name: "firstname",
                     type: "input",
                     message: "Employees first name: ",
 
+
                 },
                 {
                     name: "lastname",
                     type: "input",
                     message: "Employees last name: ",
+
 
                 },
                 {
@@ -178,11 +178,13 @@ function addRole() {
                     type: "input",
                     message: "What role would you like to create: ",
 
+
                 },
                 {
                     name: "salary",
                     type: "input",
                     message: "What is the salary for the created role: ",
+
 
                 },
                 {
@@ -460,6 +462,7 @@ function updateManager() {
             })
     })
 }
+
 
 figlet('Employee Tracker', function (err, data) {
     if (err) {
